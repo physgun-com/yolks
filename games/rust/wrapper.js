@@ -87,7 +87,7 @@ var poll = function () {
 	var ws = new WebSocket("ws://" + serverHostname + ":" + serverPort + "/" + serverPassword);
 
 	ws.on("open", function open() {
-		console.log("Connected to RCON. Generating the map now. Please wait until the server status switches to \"Running\".");
+		console.log("Connected to RCON. Generating the map now. Please wait until the server status switches to \"Running\", It might take a long time!");
 		waiting = false;
 
 		// Hack to fix broken console output
