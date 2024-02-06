@@ -35,4 +35,4 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/anthonyphysgun/games:${{ matrix.game }}
+            ghcr.io/physgun-com/games:${{ matrix.game }}
