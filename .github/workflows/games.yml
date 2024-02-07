@@ -16,7 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         game:
-          - source
           - rust
     steps:
       - uses: actions/checkout@v3
