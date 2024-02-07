@@ -40,7 +40,7 @@ download_extension() {
 	local name=$3
 	if [ "${!name}" == "1" ]; then
 		curl -SSL -o "${file}" "${url}"
-		mv "${file}" /home/container/server/RustDedicated_Data/Managed
+		mv "${file}" /home/container/RustDedicated_Data/Managed
 		echo -e "Updated ${file}\n"
 	fi
 }
