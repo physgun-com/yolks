@@ -10,7 +10,9 @@ else
 fi
 
 MODIFIED_STARTUP=`eval echo $(echo ${STARTUP} | sed -e 's/{{/${/g' -e 's/}}/}/g')`
-echo "Starting Physgun Rust Server\nStartup Command - ${MODIFIED_STARTUP}"
+
+echo "Starting Physgun Rust Server"
+echo "Startup Command - ${MODIFIED_STARTUP}"
 
 if [[ "${FRAMEWORK}" == "carbon" ]]; then
     echo "Updating Carbon..."
@@ -44,19 +46,19 @@ download_extension() {
 }
 
 if [ "${DISCORD_EXT}" == "1" ]; then
-	download_extension "https://umod.org/extensions/discord/download" "Oxide.Ext.Discord.dll" "Discord DLL"
+	download_extension "https://umod.org/extensions/discord/download" "Oxide.Ext.Discord.dll" "DISCORD_EXT"
 fi
 
 if [ "${RUST_EDIT}" == "1" ]; then
-	download_extension "https://umod.org/extensions/rustedit/download" "Oxide.Ext.RustEdit.dll" "RustEdit DLL"
+	download_extension "https://umod.org/extensions/rustedit/download" "Oxide.Ext.RustEdit.dll" "RUST_EDIT"
 fi
 
 if [ "${CHAOS_EXT}" == "1" ]; then
-	download_extension "https://chaoscode.io/oxide/Oxide.Ext.Chaos.dll" "Oxide.Ext.Chaos.dll" "Chaos DLL"
+	download_extension "https://chaoscode.io/oxide/Oxide.Ext.Chaos.dll" "Oxide.Ext.Chaos.dll" "CHAOS_EXT"
 fi
 
 if [ "${CHAOS_NPC}" == "1" ]; then
-	download_extension "https://chaoscode.io/oxide/Oxide.Ext.ChaosNPC.dll" "Oxide.Ext.ChaosNPC.dll" "ChaosNPC DLL"
+	download_extension "https://chaoscode.io/oxide/Oxide.Ext.ChaosNPC.dll" "Oxide.Ext.ChaosNPC.dll" "CHAOS_NPC"
 fi
 
 cd "$OLD_DIR"
