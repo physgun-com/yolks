@@ -3,7 +3,7 @@ cd /home/container
 
 # Custom logging function with color output
 log() {
-    echo -e "\u001b[34m[PhysgunEntry] \u001b[36m$1"
+    echo -e "\u001b[34m[PhysgunEntry] \u001b[36m$1\u001b[0m"
 }
 
 export INTERNAL_IP=$(ip route get 1 | awk '{print $(NF-2);exit}')
