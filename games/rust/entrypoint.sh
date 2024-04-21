@@ -44,7 +44,7 @@ download_extension() {
 
 # Download extensions if enabled
 download_extension "https://umod.org/extensions/discord/download" "Oxide.Ext.Discord.dll" "DISCORD_EXT"
-download_extension "https://umod.org/extensions/rustedit/download" "Oxide.Ext.RustEdit.dll" "RUST_EDIT"
+download_extension "https://github.com/k1lly0u/Oxide.Ext.RustEdit/raw/master/Oxide.Ext.RustEdit.dll" "Oxide.Ext.RustEdit.dll" "RUST_EDIT"
 download_extension "https://chaoscode.io/oxide/Oxide.Ext.Chaos.dll" "Oxide.Ext.Chaos.dll" "CHAOS_EXT"
 download_extension "https://chaoscode.io/oxide/Oxide.Ext.ChaosNPC.dll" "Oxide.Ext.ChaosNPC.dll" "CHAOS_NPC"
 
