@@ -37,12 +37,17 @@ function filter(data) {
 var exec = require("child_process").exec;
 console.log("Starting Rust...");
 
+var envVars = process.env;
+if (envVars.LD_PRELOAD) {
+	envVars.LD_PRELOAD = process.env.PHYSGUN_UTILS_PATH ? process.env.PHYSGUN_UTILS_PATH + " " + envVars.LD_PRELOAD : envVars.LD_PRELOAD;
+}
+else {
+	envVars.LD_PRELOAD = process.env.PHYSGUN_UTILS_PATH ? process.env.PHYSGUN_UTILS_PATH : "";
+}
+
 var exited = false;
 const gameProcess = exec(startupCmd, {
-		env: {
-			...process.env,
-			LD_PRELOAD: process.env.PHYSGUN_UTILS_PATH ? process.env.PHYSGUN_UTILS_PATH : process.env.LD_PRELOAD
-		}
+		env: envVars
 })
 gameProcess.stdout.on('data', filter);
 gameProcess.stderr.on('data', filter);
