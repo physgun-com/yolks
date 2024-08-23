@@ -38,7 +38,12 @@ var exec = require("child_process").exec;
 console.log("Starting Rust...");
 
 var exited = false;
-const gameProcess = exec(startupCmd);
+const gameProcess = exec(startupCmd, {
+		env: {
+			...process.env,
+			LD_PRELOAD: process.env.PHYSGUN_UTILS_PATH ? process.env.PHYSGUN_UTILS_PATH : process.env.LD_PRELOAD
+		}
+})
 gameProcess.stdout.on('data', filter);
 gameProcess.stderr.on('data', filter);
 gameProcess.on('exit', function (code, signal) {
