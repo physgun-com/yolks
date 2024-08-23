@@ -27,7 +27,6 @@ if [[ "${FRAMEWORK}" == "carbon" ]]; then
     log "Carbon update complete!"
     export DOORSTOP_ENABLED=1
     export DOORSTOP_TARGET_ASSEMBLY="$(pwd)/carbon/managed/Carbon.Preloader.dll"
-    MODIFIED_STARTUP="LD_PRELOAD=$(pwd)/libdoorstop.so $MODIFIED_STARTUP"
 elif [[ "${FRAMEWORK}" == "oxide" ]] || [[ "$OXIDE" == "1" ]]; then
     log "Installing Oxide..."
     curl -sSL "https://github.com/OxideMod/Oxide.Rust/releases/latest/download/Oxide.Rust-linux.zip" > umod.zip

@@ -37,17 +37,16 @@ function filter(data) {
 var exec = require("child_process").exec;
 console.log("Starting Rust...");
 
-var envVars = process.env;
-if (envVars.LD_PRELOAD) {
-	envVars.LD_PRELOAD = process.env.PHYSGUN_UTILS_PATH ? process.env.PHYSGUN_UTILS_PATH + " " + envVars.LD_PRELOAD : envVars.LD_PRELOAD;
-}
-else {
-	envVars.LD_PRELOAD = process.env.PHYSGUN_UTILS_PATH ? process.env.PHYSGUN_UTILS_PATH : "";
-}
+
+var ldPreload = process.env.PHYSGUN_UTILS_PATH ? process.env.PHYSGUN_UTILS_PATH : process.env.LD_PRELOAD;
+if (process.env.DOORSTOP_ENABLED == 1) ldPreload = (ldPreload ? ldPreload : "") + " " + "/home/container/libdoorstop.so";
 
 var exited = false;
 const gameProcess = exec(startupCmd, {
-		env: envVars
+		env: {
+			...process.env,
+			LD_PRELOAD: ldPreload
+		}
 })
 gameProcess.stdout.on('data', filter);
 gameProcess.stderr.on('data', filter);
