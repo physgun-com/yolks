@@ -34,6 +34,13 @@ function filter(data) {
 	console.log(str);
 }
 
+function filterPostRCon(data) {
+	const str = data.toString()
+	if(!str.startsWith("\u001b[34m")) return;
+
+	console.log(str)
+}
+
 var exec = require("child_process").exec;
 console.log("Starting Rust...");
 
@@ -105,6 +112,7 @@ var poll = function () {
 		process.stdin.removeListener('data', initialListener);
 		gameProcess.stdout.removeListener('data', filter);
 		gameProcess.stderr.removeListener('data', filter);
+		gameProcess.stdout.on('data', filterPostRCon)
 		process.stdin.on('data', function (text) {
 			ws.send(createPacket(text));
 		});
