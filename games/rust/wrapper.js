@@ -36,9 +36,7 @@ function filter(data) {
 
 function filterPostRCon(data) {
 	const str = data.toString()
-	if(!str.startsWith("\u001b[34m")) return;
-
-	console.log(str)
+	if(str.startsWith("\u001b[34m[Physgun")) console.log(str)
 }
 
 var exec = require("child_process").exec;
