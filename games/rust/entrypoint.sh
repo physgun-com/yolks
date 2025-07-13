@@ -10,7 +10,14 @@ export INTERNAL_IP=$(ip route get 1 | awk '{print $(NF-2);exit}')
 
 # Handle auto-update logic
 if [ -z "${AUTO_UPDATE}" ] || [ "${AUTO_UPDATE}" == "1" ]; then
-    ./steamcmd/steamcmd.sh +force_install_dir /home/container +login anonymous +app_update 258550 +quit
+    # Construct the beta branch argument if set and not 'none'
+    if [ -n "${STEAMCMD_BRANCH}" ] && [ "${STEAMCMD_BRANCH}" != "none" ]; then
+        BRANCH_ARG="-beta ${STEAMCMD_BRANCH}"
+    else
+        BRANCH_ARG=""
+    fi
+
+    ./steamcmd/steamcmd.sh +force_install_dir /home/container +login anonymous +app_update 258550 ${BRANCH_ARG} +quit
 else
     log "Auto-update disabled. Starting Server without updating."
 fi
