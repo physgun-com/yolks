@@ -14,7 +14,7 @@ if [ -z "${AUTO_UPDATE}" ] || [ "${AUTO_UPDATE}" == "1" ]; then
     if [ -n "${STEAMCMD_BRANCH}" ] && [ "${STEAMCMD_BRANCH}" != "none" ]; then
         BRANCH_ARG="-beta ${STEAMCMD_BRANCH}"
     else
-        BRANCH_ARG=""
+        BRANCH_ARG="-beta public"
     fi
 
     ./steamcmd/steamcmd.sh +force_install_dir /home/container +login anonymous +app_update 258550 ${BRANCH_ARG} +quit
