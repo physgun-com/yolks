@@ -32,13 +32,18 @@ ENV         DEBIAN_FRONTEND=noninteractive
 RUN			dpkg --add-architecture i386 \
 			&& apt update \
 			&& apt upgrade -y \
-			&& apt install -y lib32gcc-s1 lib32stdc++6 unzip curl iproute2 tzdata libgdiplus libsdl2-2.0-0:i386
+			&& apt install -y lib32gcc-s1 lib32stdc++6 unzip curl iproute2 tzdata libgdiplus libsdl2-2.0-0:i386 \
+			&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR     /usr/src/wrapper
-RUN         apt-get install -y nodejs npm \
+RUN         apt update \
+			&& apt-get install -y nodejs npm \
             && mkdir -p /usr/src/wrapper/node_modules \
             && npm install ws \
-			&& mv /usr/src/wrapper/node_modules /node_modules
+			&& mv /usr/src/wrapper/node_modules /node_modules \
+			&& apt-get remove -y npm \
+			&& apt-get autoremove -y \
+			&& rm -rf /var/lib/apt/lists/*
 
 RUN         useradd -d /home/container -m container
 USER 		container
