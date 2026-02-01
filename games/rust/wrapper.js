@@ -24,6 +24,7 @@ const seenPercentage = {};
 
 // Spammy Unity warnings that are irrelevant for dedicated servers
 const ignoredPatterns = [
+	'ERROR: Shader',
 	' is not supported on this GPU ',
 	' - All subshaders removed',
 	'Did you use #pragma only_renderers',
@@ -64,10 +65,10 @@ if (process.env.DOORSTOP_ENABLED == 1) ldPreload = (ldPreload ? ldPreload : "") 
 
 var exited = false;
 const gameProcess = exec(startupCmd, {
-		env: {
-			...process.env,
-			LD_PRELOAD: ldPreload
-		}
+	env: {
+		...process.env,
+		LD_PRELOAD: ldPreload
+	}
 })
 gameProcess.stdout.on('data', filter);
 gameProcess.stderr.on('data', filter);
