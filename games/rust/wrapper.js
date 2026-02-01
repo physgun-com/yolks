@@ -22,6 +22,25 @@ if (startupCmd.length < 1) {
 
 const seenPercentage = {};
 
+// Spammy Unity warnings that are irrelevant for dedicated servers
+const ignoredPatterns = [
+	' is not supported on this GPU ',
+	' - All subshaders removed',
+	'Did you use #pragma only_renderers',
+	'If subshaders removal was intentional',
+	": fallback shader '",
+	'was too large for graphics device maximum supported texture size',
+	'Fallback handler could not load library /home/container/RustDedicated_Data/MonoBleedingEdge/x86_64/data-',
+	"gpath.c:115: assertion 'filename != NULL' failed",
+	'Renderer: Null Device',
+	'Forcing GfxDevice: Null',
+	'GfxDevice: creating device client;',
+	'NullGfxDevice:',
+	'Version:  NULL 1.0 [1.0]',
+];
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const ignoredRegex = new RegExp(ignoredPatterns.map(escapeRegex).join('|'));
+
 function filter(data) {
 	const str = data.toString();
 	if (str.startsWith("Loading Prefab Bundle ")) { // Rust seems to spam the same percentage, so filter out any duplicates.
@@ -30,6 +49,8 @@ function filter(data) {
 
 		seenPercentage[percentage] = true;
 	}
+
+	if (ignoredRegex.test(str)) return;
 
 	console.log(str);
 }
