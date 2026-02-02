@@ -35,8 +35,14 @@ if [[ "${FRAMEWORK}" == "carbon" ]]; then
     export DOORSTOP_ENABLED=1
     export DOORSTOP_TARGET_ASSEMBLY="$(pwd)/carbon/managed/Carbon.Preloader.dll"
 elif [[ "${FRAMEWORK}" == "oxide" ]] || [[ "$OXIDE" == "1" ]]; then
-    log "Installing Oxide..."
-    curl -sSL "https://github.com/OxideMod/Oxide.Rust/releases/latest/download/Oxide.Rust-linux.zip" > umod.zip
+    if [ -n "${STEAMCMD_BRANCH}" ] && [ "${STEAMCMD_BRANCH}" != "none" ]; then
+    	log "Installing Oxide (staging branch)..."
+    	OXIDE_URL="https://downloads.oxidemod.com/artifacts/Oxide.Rust/staging/Oxide.Rust-linux.zip"
+	else
+    	log "Installing Oxide..."
+    	OXIDE_URL="https://github.com/OxideMod/Oxide.Rust/releases/latest/download/Oxide.Rust-linux.zip"
+	fi
+    curl -sSL $OXIDE_URL > umod.zip
     unzip -o -q umod.zip && rm umod.zip
     log "Oxide installation complete!"
 fi
