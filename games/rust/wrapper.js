@@ -125,8 +125,8 @@ var poll = function () {
 		ws.send(createPacket('status'));
 
 		process.stdin.removeListener('data', initialListener);
-		gameProcess.stdout.removeListener('data', filter);
-		gameProcess.stderr.removeListener('data', filter);
+		//gameProcess.stdout.removeListener('data', filter);
+		//gameProcess.stderr.removeListener('data', filter);
 		process.stdin.on('data', function (text) {
 			ws.send(createPacket(text));
 		});
