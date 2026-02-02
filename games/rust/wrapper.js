@@ -31,7 +31,7 @@ const ignoredPatterns = [
 	'If subshaders removal was intentional',
 	": fallback shader '",
 	'was too large for graphics device maximum supported texture size',
-	'Fallback handler could not load library /home/container/RustDedicated_Data/MonoBleedingEdge/x86_64/data-',
+	'Fallback handler could not load library ',
 	"gpath.c:115: assertion 'filename != NULL' failed",
 	'Renderer: Null Device',
 	'Forcing GfxDevice: Null',
