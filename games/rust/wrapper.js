@@ -1,9 +1,17 @@
 #!/usr/bin/env node
 
+const log = process.env.LOG_TIMESTAMPS != '1' ? console.log : (message) => {
+	if (typeof message === 'string') {
+		console.log(`[${new Date().toISOString()}] ${message}`);
+	} else {
+		console.log(message);
+	}
+};
+
 var startupCmd = "";
 const fs = require("fs");
 fs.writeFile("latest.log", "", (err) => {
-	if (err) console.log("Callback error in appendFile:" + err);
+	if (err) log("Callback error in appendFile:" + err);
 });
 
 var args = process.argv.splice(process.execArgv.length + 2);
@@ -16,7 +24,7 @@ for (var i = 0; i < args.length; i++) {
 }
 
 if (startupCmd.length < 1) {
-	console.log("Error: Please specify a startup command.");
+	log("Error: Please specify a startup command.");
 	process.exit();
 }
 
@@ -54,11 +62,11 @@ function filter(data) {
 
 	if (ignoredRegex.test(str)) return;
 
-	console.log(str);
+	log(str);
 }
 
 var exec = require("child_process").exec;
-console.log("Starting Rust...");
+log("Starting Rust...");
 
 
 var ldPreload = process.env.PHYSGUN_UTILS_PATH ? process.env.PHYSGUN_UTILS_PATH : process.env.LD_PRELOAD;
@@ -77,7 +85,7 @@ gameProcess.on('exit', function (code, signal) {
 	exited = true;
 
 	if (code) {
-		console.log("Main game process exited with code " + code);
+		log("Main game process exited with code " + code);
 		process.exit(code);
 	}
 });
@@ -87,7 +95,7 @@ function initialListener(data) {
 	if (command === 'quit') {
 		gameProcess.kill('SIGTERM');
 	} else {
-		console.log('Unable to run "' + command + '" due to RCON not being connected yet.');
+		log('Unable to run "' + command + '" due to RCON not being connected yet.');
 	}
 }
 process.stdin.resume();
@@ -97,7 +105,7 @@ process.stdin.on('data', initialListener);
 process.on('exit', function (code) {
 	if (exited) return;
 
-	console.log("Received request to stop the process, stopping the game...");
+	log("Received request to stop the process, stopping the game...");
 	gameProcess.kill('SIGTERM');
 });
 
@@ -119,7 +127,7 @@ var poll = function () {
 	var ws = new WebSocket("ws://" + serverHostname + ":" + serverPort + "/" + serverPassword);
 
 	ws.on("open", function open() {
-		console.log("Connected to RCON. Generating the map now. Please wait until the server status switches to \"Running\", It might take a long time!");
+		log("Connected to RCON. Generating the map now. Please wait until the server status switches to \"Running\", It might take a long time!");
 		waiting = false;
 
 		// Hack to fix broken console output
@@ -138,31 +146,31 @@ var poll = function () {
 			var json = JSON.parse(data);
 			if (json !== undefined) {
 				if (json.Message !== undefined && json.Message.length > 0) {
-					console.log(json.Message);
+					log(json.Message);
 					const fs = require("fs");
 					fs.appendFile("latest.log", "\n" + json.Message, (err) => {
-						if (err) console.log("Callback error in appendFile:" + err);
+						if (err) log("Callback error in appendFile:" + err);
 					});
 				}
 			} else {
-				console.log("Error: Invalid JSON received");
+				log("Error: Invalid JSON received");
 			}
 		} catch (e) {
 			if (e) {
-				console.log(e);
+				log(e);
 			}
 		}
 	});
 
 	ws.on("error", function (err) {
 		waiting = true;
-		console.log("Waiting for RCON to come up...");
+		log("Waiting for RCON to come up...");
 		setTimeout(poll, 5000);
 	});
 
 	ws.on("close", function () {
 		if (!waiting) {
-			console.log("Connection to server closed.");
+			log("Connection to server closed.");
 
 			exited = true;
 			process.exit();
