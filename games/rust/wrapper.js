@@ -77,7 +77,7 @@ gameProcess.on('exit', function (code, signal) {
 
 	if (code) {
 		console.log("Main game process exited with code " + code);
-		// process.exit(code);
+		process.exit(code);
 	}
 });
 
