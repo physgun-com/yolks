@@ -38,6 +38,7 @@ const ignoredPatterns = [
 	'GfxDevice: creating device client;',
 	'NullGfxDevice:',
 	'Version:  NULL 1.0 [1.0]',
+	'3D Noise requires higher shader capabilities',
 ];
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const ignoredRegex = new RegExp(ignoredPatterns.map(escapeRegex).join('|'));
