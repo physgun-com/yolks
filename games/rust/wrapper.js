@@ -10,6 +10,7 @@ const log = process.env.LOG_TIMESTAMPS != '1' ? console.log : (message) => {
 
 var startupCmd = "";
 const fs = require("fs");
+const path = require("path");
 fs.writeFile("latest.log", "", (err) => {
 	if (err) log("Callback error in appendFile:" + err);
 });
@@ -47,6 +48,12 @@ const ignoredPatterns = [
 	'NullGfxDevice:',
 	'Version:  NULL 1.0 [1.0]',
 	'3D Noise requires higher shader capabilities',
+	"Prefab '' does not have an associated asset scene.",
+	'StringPool.GetString - no string for',
+	'Could not find path for prefab ID',
+	'BoxCollider does not support negative scale or size.',
+	'The effective box size has been forced positive and is likely to give unexpected collision geometry.',
+	'If you absolutely need to use negative scaling you can use the convex MeshCollider. Scene hierarchy path',
 ];
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const ignoredRegex = new RegExp(ignoredPatterns.map(escapeRegex).join('|'));
@@ -65,6 +72,142 @@ function filter(data) {
 	log(str);
 }
 
+// Parse the -logfile argument from the startup command to find the log path.
+function parseLogfilePath(cmd) {
+	// Matches -logfile "path" or -logfile 'path' or -logfile path
+	const match = cmd.match(/-logfile\s+(?:"([^"]+)"|'([^']+)'|(\S+))/);
+	if (!match) return null;
+	return match[1] || match[2] || match[3];
+}
+
+let logTailActive = false;
+let logWatcher = null;
+let logTailTimeout = null;
+let logPollInterval = null;
+
+function startLogTail(filePath) {
+	let fileOffset = 0;
+	let lineBuf = '';
+	let reading = false;
+	let pendingRead = false;
+	logTailActive = true;
+
+	function readNewData() {
+		if (!logTailActive) return;
+
+		// If a read is already in-flight, just flag that we need to re-read when it finishes.
+		if (reading) {
+			pendingRead = true;
+			return;
+		}
+		reading = true;
+		pendingRead = false;
+
+		fs.stat(filePath, (err, stats) => {
+			if (err || !stats || stats.size <= fileOffset) {
+				reading = false;
+				if (pendingRead) readNewData();
+				return;
+			}
+
+			const readStart = fileOffset;
+			const readEnd = stats.size - 1;
+			const chunks = [];
+
+			const stream = fs.createReadStream(filePath, {
+				start: readStart,
+				end: readEnd,
+				encoding: 'utf8',
+			});
+
+			stream.on('data', (chunk) => {
+				chunks.push(chunk);
+			});
+
+			stream.on('end', () => {
+				const full = chunks.join('');
+				fileOffset = readStart + Buffer.byteLength(full, 'utf8');
+				lineBuf += full;
+
+				const lines = lineBuf.split('\n');
+				// Keep the last element as the incomplete line buffer
+				lineBuf = lines.pop();
+
+				for (const line of lines) {
+					const trimmed = line.replace(/\r$/, '');
+					if (trimmed.length > 0) {
+						filter(trimmed);
+					}
+				}
+
+				reading = false;
+				// If new data arrived while we were reading, go again immediately.
+				if (pendingRead) readNewData();
+			});
+
+			stream.on('error', () => {
+				reading = false;
+				if (pendingRead) readNewData();
+			});
+		});
+	}
+
+	// Use fs.watch for instant notification, with a polling fallback
+	try {
+		logWatcher = fs.watch(filePath, () => readNewData());
+	} catch (_) {
+		// Fallback: poll every 500ms if fs.watch isn't available
+	}
+
+	// Poll as a fallback/supplement — fs.watch can be unreliable on some platforms
+	logPollInterval = setInterval(() => {
+		if (!logTailActive) {
+			clearInterval(logPollInterval);
+			return;
+		}
+		readNewData();
+	}, 500);
+
+	readNewData();
+}
+
+function stopLogTail() {
+	if (!logTailActive) return;
+	logTailActive = false;
+
+	if (logWatcher) {
+		logWatcher.close();
+		logWatcher = null;
+	}
+	if (logTailTimeout) {
+		clearTimeout(logTailTimeout);
+		logTailTimeout = null;
+	}
+	if (logPollInterval) {
+		clearInterval(logPollInterval);
+		logPollInterval = null;
+	}
+}
+
+function waitForLogfile(filePath) {
+	function check() {
+		fs.access(filePath, fs.constants.F_OK, (err) => {
+			if (!err) {
+				startLogTail(filePath);
+			} else {
+				logTailTimeout = setTimeout(check, 1000);
+			}
+		});
+	}
+	check();
+}
+
+// Kick off logfile tailing if ENABLE_LOGGING=1
+const logfilePath = process.env.ENABLE_LOGGING === '1' ? parseLogfilePath(startupCmd) : null;
+if (logfilePath) {
+	waitForLogfile(logfilePath);
+}
+
 var exec = require("child_process").exec;
 log("Starting Rust...");
 
@@ -79,8 +222,12 @@ const gameProcess = exec(startupCmd, {
 		LD_PRELOAD: ldPreload
 	}
 })
-gameProcess.stdout.on('data', filter);
-gameProcess.stderr.on('data', filter);
+const earlyData = (data) => {
+	if (logTailActive) return; // Don't log early output if we're tailing the logfile, to avoid duplicates
+	filter(data);
+};
+gameProcess.stdout.on('data', earlyData);
+gameProcess.stderr.on('data', earlyData);
 gameProcess.on('exit', function (code, signal) {
 	exited = true;
 
@@ -130,12 +277,15 @@ var poll = function () {
 		log("Connected to RCON. Generating the map now. Please wait until the server status switches to \"Running\", It might take a long time!");
 		waiting = false;
 
+		// Stop tailing the logfile now that RCON is connected
+		stopLogTail();
+
 		// Hack to fix broken console output
 		ws.send(createPacket('status'));
 
 		process.stdin.removeListener('data', initialListener);
-		gameProcess.stdout.removeListener('data', filter);
-		gameProcess.stderr.removeListener('data', filter);
+		gameProcess.stdout.removeListener('data', earlyData);
+		gameProcess.stderr.removeListener('data', earlyData);
 		process.stdin.on('data', function (text) {
 			ws.send(createPacket(text));
 		});
@@ -146,7 +296,7 @@ var poll = function () {
 			var json = JSON.parse(data);
 			if (json !== undefined) {
 				if (json.Message !== undefined && json.Message.length > 0) {
-					log(json.Message);
+					filter(json.Message);
 					const fs = require("fs");
 					fs.appendFile("latest.log", "\n" + json.Message, (err) => {
 						if (err) log("Callback error in appendFile:" + err);
